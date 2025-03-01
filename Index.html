@@ -5,18 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Global Nurture Academy</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
-        nav a { margin: 10px; padding: 10px; text-decoration: none; background: #007bff; color: white; border-radius: 5px; }
-        table { width: 80%; margin: 20px auto; border-collapse: collapse; }
-        th, td { border: 1px solid black; padding: 10px; }
-        th { background-color: #f4f4f4; }
-        .container { display: none; }
-        .active { display: block; }
+        /* Gradient Background */
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to right, #ff9966, #ff5e62);
+            color: white;
+            text-align: center;
+        }
+
+        /* Header Styling */
+        .header {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Navigation Bar */
+        nav a {
+            margin: 10px;
+            padding: 10px 15px;
+            text-decoration: none;
+            background: #ffcc00;
+            color: black;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            background: #ff9900;
+        }
+
+        /* Main Content */
+        .container {
+            margin: 20px auto;
+            max-width: 90%;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* School Images */
+        .school-img {
+            width: 80px;
+            height: auto;
+            margin: 10px;
+        }
+
+        /* Table Styling */
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            color: black;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+        }
+        th {
+            background-color: #ffcc00;
+        }
+
     </style>
 </head>
 <body>
 
-    <h1>Global Nurture Academy</h1>
+    <div class="header">Global Nurture Academy</div>
 
     <nav>
         <a href="#" onclick="showSection('news')">Latest News</a>
@@ -24,6 +85,14 @@
         <a href="#" onclick="showSection('results')">Results</a>
         <a href="#" onclick="showSection('contact')">Contact Us</a>
     </nav>
+
+    <!-- School-Themed Images -->
+    <div>
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" class="school-img" alt="Student">
+        <img src="https://cdn-icons-png.flaticon.com/512/5281/5281231.png" class="school-img" alt="Books">
+        <img src="https://cdn-icons-png.flaticon.com/512/1682/1682235.png" class="school-img" alt="Pencil">
+        <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" class="school-img" alt="Notebook">
+    </div>
 
     <!-- News Section -->
     <section id="news" class="container active">
@@ -86,45 +155,6 @@
                     }
                 })
                 .catch(error => console.error("Error fetching news:", error));
-        }
-
-        function fetchAttendance() {
-            const studentID = document.getElementById("studentID").value.trim();
-            fetch(sheetURL)
-                .then(response => response.text())
-                .then(csvText => {
-                    let rows = csvText.split("\n").map(row => row.split(","));
-                    let tableBody = document.querySelector("#attendanceTable tbody");
-                    tableBody.innerHTML = "";
-                    let found = false;
-                    for (let i = 1; i < rows.length; i++) {
-                        if (rows[i][2] === studentID) { // Assuming ID is in column 3
-                            let rowHTML = `<tr><td>${rows[i][0]}</td><td>${rows[i][1]}</td></tr>`;
-                            tableBody.innerHTML += rowHTML;
-                            found = true;
-                        }
-                    }
-                    if (!found) alert("Student ID not found!");
-                })
-                .catch(error => console.error("Error fetching attendance:", error));
-        }
-
-        function fetchResults() {
-            const resultID = document.getElementById("resultID").value.trim();
-            fetch(sheetURL)
-                .then(response => response.text())
-                .then(csvText => {
-                    let rows = csvText.split("\n").map(row => row.split(","));
-                    let found = false;
-                    for (let i = 1; i < rows.length; i++) {
-                        if (rows[i][2] === resultID) { // Assuming ID is in column 3
-                            document.getElementById("resultDisplay").innerText = `Result: ${rows[i][3]}`;
-                            found = true;
-                        }
-                    }
-                    if (!found) alert("Student ID not found!");
-                })
-                .catch(error => console.error("Error fetching results:", error));
         }
 
         loadNews(); // Load news on page load
