@@ -1,157 +1,134 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Global Nurture Academy</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .hidden { display: none; }
-        table { margin: auto; border-collapse: collapse; width: 80%; }
-        th, td { border: 1px solid black; padding: 10px; text-align: center; }
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+        nav a { margin: 10px; padding: 10px; text-decoration: none; background: #007bff; color: white; border-radius: 5px; }
+        table { width: 80%; margin: 20px auto; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 10px; }
+        th { background-color: #f4f4f4; }
+        .container { display: none; }
+        .active { display: block; }
     </style>
 </head>
 <body>
+
     <h1>Global Nurture Academy</h1>
-    
-    <!-- Login Section -->
-    <div id="loginSection">
-        <h2>Student Login</h2>
-        <input type="text" id="studentID" placeholder="Enter Student ID">
-        <button onclick="login()">Login</button>
-    </div>
-    
-    <!-- Dashboard Section -->
-    <div id="dashboard" class="hidden">
-        <h2>Welcome, <span id="studentName"></span></h2>
-        <button onclick="logout()">Logout</button>
-        
-        <h3>Latest News</h3>
-        <p id="latestNews">Loading...</p>
-        
-        <h3>Attendance</h3>
-        <table>
+
+    <nav>
+        <a href="#" onclick="showSection('news')">Latest News</a>
+        <a href="#" onclick="showSection('attendance')">Attendance</a>
+        <a href="#" onclick="showSection('results')">Results</a>
+        <a href="#" onclick="showSection('contact')">Contact Us</a>
+    </nav>
+
+    <!-- News Section -->
+    <section id="news" class="container active">
+        <h2>Latest News</h2>
+        <table id="newsTable">
             <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Status</th>
-                </tr>
+                <tr><th>Date</th><th>News</th></tr>
             </thead>
-            <tbody id="attendanceData"></tbody>
+            <tbody></tbody>
         </table>
-        
-        <h3>Results</h3>
-        <p id="studentResult">Loading...</p>
-    </div>
-    
-    <!-- Staff Login Section -->
-    <div id="staffLoginSection" class="hidden">
-        <h2>Staff Login</h2>
-        <input type="text" id="staffUsername" placeholder="Username">
-        <input type="password" id="staffPassword" placeholder="Password">
-        <button onclick="staffLogin()">Login</button>
-    </div>
-    
-    <!-- News Update Section for Staff -->
-    <div id="staffDashboard" class="hidden">
-        <h2>Staff Dashboard</h2>
-        <button onclick="staffLogout()">Logout</button>
-        <h3>Update Latest News</h3>
-        <input type="text" id="newsInput" placeholder="Enter Latest News">
-        <button onclick="updateNews()">Update News</button>
-    </div>
-    
+    </section>
+
+    <!-- Attendance Section -->
+    <section id="attendance" class="container">
+        <h2>Check Attendance</h2>
+        <input type="text" id="studentID" placeholder="Enter Student ID">
+        <button onclick="fetchAttendance()">Check</button>
+        <table id="attendanceTable">
+            <thead>
+                <tr><th>Date</th><th>Attendance</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results" class="container">
+        <h2>Check Results</h2>
+        <input type="text" id="resultID" placeholder="Enter Student ID">
+        <button onclick="fetchResults()">Check</button>
+        <p id="resultDisplay"></p>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="container">
+        <h2>Contact Us</h2>
+        <p>📍 Nagar Palika Colony, Baran, India</p>
+        <p>📧 Email: suniltrendzeducation@gmail.com</p>
+        <p>📞 Phone: +91 9001453902</p>
+    </section>
+
     <script>
-        const SHEET_URL = "YOUR_GOOGLE_SHEET_PUBLIC_CSV_LINK";
-        let studentData = {};
-        let latestNews = "";
+        const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTBy5bDpwtaAuG7RpDfnKdFolgYWuqVcBxA-TbYhcOnk3cQ7kq0J1hDwPNOjwKtAq1qpQYI8hIF1Fav/pub?output=csv";
 
-        async function fetchSheetData() {
-            try {
-                let response = await fetch(SHEET_URL);
-                let data = await response.text();
-                let rows = data.split("\n").map(row => row.split(","));
-                
-                latestNews = rows[1][2]; // Fetch common latest news
-                
-                for (let i = 1; i < rows.length; i++) {
-                    let [id, name, news, date, attendance, result] = rows[i];
-                    studentData[id] = { name, attendance, result };
-                }
-                document.getElementById("latestNews").innerText = latestNews;
-            } catch (error) {
-                console.error("Error fetching data: ", error);
-            }
+        function showSection(id) {
+            document.querySelectorAll('.container').forEach(section => section.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
-        
-        function login() {
-            let studentID = document.getElementById("studentID").value;
-            if (studentData[studentID]) {
-                document.getElementById("loginSection").classList.add("hidden");
-                document.getElementById("dashboard").classList.remove("hidden");
-                document.getElementById("studentName").innerText = studentData[studentID].name;
-                document.getElementById("attendanceData").innerHTML = `<tr><td>${new Date().toLocaleDateString()}</td><td>${studentData[studentID].attendance}</td></tr>`;
-                document.getElementById("studentResult").innerText = studentData[studentID].result;
-            } else {
-                alert("Invalid Student ID");
-            }
+
+        function loadNews() {
+            fetch(sheetURL)
+                .then(response => response.text())
+                .then(csvText => {
+                    let rows = csvText.split("\n").map(row => row.split(","));
+                    let tableBody = document.querySelector("#newsTable tbody");
+                    tableBody.innerHTML = "";
+                    for (let i = 1; i < rows.length; i++) {
+                        let rowHTML = `<tr><td>${rows[i][0]}</td><td>${rows[i][1]}</td></tr>`;
+                        tableBody.innerHTML += rowHTML;
+                    }
+                })
+                .catch(error => console.error("Error fetching news:", error));
         }
-        
-        function logout() {
-            document.getElementById("dashboard").classList.add("hidden");
-            document.getElementById("loginSection").classList.remove("hidden");
+
+        function fetchAttendance() {
+            const studentID = document.getElementById("studentID").value.trim();
+            fetch(sheetURL)
+                .then(response => response.text())
+                .then(csvText => {
+                    let rows = csvText.split("\n").map(row => row.split(","));
+                    let tableBody = document.querySelector("#attendanceTable tbody");
+                    tableBody.innerHTML = "";
+                    let found = false;
+                    for (let i = 1; i < rows.length; i++) {
+                        if (rows[i][2] === studentID) { // Assuming ID is in column 3
+                            let rowHTML = `<tr><td>${rows[i][0]}</td><td>${rows[i][1]}</td></tr>`;
+                            tableBody.innerHTML += rowHTML;
+                            found = true;
+                        }
+                    }
+                    if (!found) alert("Student ID not found!");
+                })
+                .catch(error => console.error("Error fetching attendance:", error));
         }
-        
-        function staffLogin() {
-            let username = document.getElementById("staffUsername").value;
-            let password = document.getElementById("staffPassword").value;
-            if (username === "admin" && password === "password") {
-                document.getElementById("staffLoginSection").classList.add("hidden");
-                document.getElementById("staffDashboard").classList.remove("hidden");
-            } else {
-                alert("Invalid credentials");
-            }
+
+        function fetchResults() {
+            const resultID = document.getElementById("resultID").value.trim();
+            fetch(sheetURL)
+                .then(response => response.text())
+                .then(csvText => {
+                    let rows = csvText.split("\n").map(row => row.split(","));
+                    let found = false;
+                    for (let i = 1; i < rows.length; i++) {
+                        if (rows[i][2] === resultID) { // Assuming ID is in column 3
+                            document.getElementById("resultDisplay").innerText = `Result: ${rows[i][3]}`;
+                            found = true;
+                        }
+                    }
+                    if (!found) alert("Student ID not found!");
+                })
+                .catch(error => console.error("Error fetching results:", error));
         }
-        
-        function staffLogout() {
-            document.getElementById("staffDashboard").classList.add("hidden");
-            document.getElementById("staffLoginSection").classList.remove("hidden");
-        }
-        
-        function updateNews() {
-            let newNews = document.getElementById("newsInput").value;
-            if (newNews) {
-                alert("News Updated! (Integration with Google Sheets required)");
-                document.getElementById("latestNews").innerText = newNews;
-            }
-        }
-        
-        fetchSheetData();
+
+        loadNews(); // Load news on page load
     </script>
-<script>
-    function fetchStudentData() {
-        let studentID = document.getElementById("studentID").value;
-        let sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTBy5bDpwtaAuG7RpDfnKdFolgYWuqVcBxA-TbYhcOnk3cQ7kq0J1hDwPNOjwKtAq1qpQYI8hIF1Fav/pub?output=csv"; // Replace YOUR_GOOGLE_SHEET_ID
-
-        fetch(sheetURL)
-            .then(response => response.text())
-            .then(csvText => {
-                let rows = csvText.split("\n").map(row => row.split(","));
-                let student = rows.find(row => row[0].trim() === studentID.trim());
-
-                if (student) {
-                    document.getElementById("studentInfo").innerHTML =
-                        `<b>Name:</b> ${student[1]}<br>
-                         <b>Attendance:</b> ${student[2]}<br>
-                         <b>Marks:</b> ${student[3]}<br>
-                         <b>Latest News:</b> ${student[4]}`;
-                } else {
-                    document.getElementById("studentInfo").innerHTML = "Student not found.";
-                }
-            })
-            .catch(error => console.log("Error fetching data: ", error));
-    }
-</script>
 
 </body>
 </html>
